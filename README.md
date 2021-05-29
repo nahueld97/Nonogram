@@ -32,7 +32,7 @@ Implementación de un nonogram interactivo, usando React del lado del cliente, y
 
   `npm install` 
 
-  en el directorio del proyecto (`tic-tac-toe`) para instalar las dependencias (librerías)
+  en el directorio del proyecto (`nonogram`) para instalar las dependencias (librerías)
 localmente, en la carpeta `node_modules`.
 
 - Ejecutar
