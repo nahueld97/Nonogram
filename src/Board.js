@@ -57,6 +57,7 @@ class Board extends React.Component {
                                     value={cell}
                                     onClick={() => this.props.onClick(i, j)}
                                     key={i + j}
+                                    disabled = {this.props.win}
                                 />
                             )
                         )}

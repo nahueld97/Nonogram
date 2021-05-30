@@ -109,6 +109,7 @@ class Game extends React.Component {
             onClick={(i, j) => this.handleClick(i,j)}
             satisfiedRowClues = {this.state.satisfiedRowClues}
             satisfiedColClues = {this.state.satisfiedColClues}
+            win = {this.state.win}
           />
           <Switch switchState={() => this.toggle()}/>
         </div>
