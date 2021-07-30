@@ -11,6 +11,7 @@ class Game extends React.Component {
     super(props);
     this.state = {
       grid: null,
+      resolvedGrid:null,
       rowClues: null,
       colClues: null,
       satisfiedRowClues:{},
@@ -18,6 +19,8 @@ class Game extends React.Component {
       waiting: false,
       mode:'#',
       win:false,
+      solution:false,
+      pista:false,
     };
     this.handleClick = this.handleClick.bind(this);
     this.handlePengineCreate = this.handlePengineCreate.bind(this);
@@ -50,8 +53,19 @@ class Game extends React.Component {
           satisfiedRowClues,
           satisfiedColClues,
         });
+        const squaresS = JSON.stringify(this.state.grid).replaceAll('"_"', "_"); // Remove quotes for variables.
+        const PFilas = JSON.stringify(this.state.rowClues);
+        const PCol= JSON.stringify(this.state.colClues);
+        const query2 = 'solucion('+squaresS+','+PFilas+','+PCol+',GrillaResuelta)';
+        this.pengine.query(query2, (success, response) => {
+        if (success) {
+          this.setState({
+            resolvedGrid: response['GrillaResuelta'],
+          });
+          }
+        })
       }
-    });
+    })
   }
 
   handleClick(i, j) {
@@ -64,7 +78,13 @@ class Game extends React.Component {
     const squaresS = JSON.stringify(this.state.grid).replaceAll('"_"', "_"); // Remove quotes for variables.
     const PFilas = JSON.stringify(this.state.rowClues);
     const PCol= JSON.stringify(this.state.colClues);
-    const queryS = 'put("'+this.state.mode+'", [' + i + ',' + j + '], '+PFilas+', '+PCol+',' + squaresS + ', GrillaRes, FilaSat, ColSat)';
+    let mode = this.state.mode;
+    //Si el modo pista esta activo cargo el proximo elemento a modificar desde la grilla resuelta
+    if (this.state.pista) {
+      mode = this.state.resolvedGrid[i][j];
+      this.setState({pista: false});
+    }
+    const queryS = 'put("'+mode+'", [' + i + ',' + j + '], '+PFilas+', '+PCol+',' + squaresS + ', GrillaRes, FilaSat, ColSat)';
     this.setState({
       waiting: true
     });
@@ -94,24 +114,49 @@ class Game extends React.Component {
     this.setState({mode: this.state.mode === '#' ? 'X' : '#'})
   }
 
+  showSolution(){
+    this.setState({solution: !this.state.solution})
+  }
+
+  setPista(){
+    this.setState({pista: !this.state.pista})
+  }
+
   render() {
-    if (this.state.grid === null) {
+    if (this.state.grid === null || this.state.resolvedGrid === null) {
       return null;
     }
     const statusText = this.state.win ? 'You Win!' : 'Keep playing!';
     return (
       <div className="game">
         <div className="board_game">
-          <Board
-            grid={this.state.grid}
-            rowClues={this.state.rowClues}
-            colClues={this.state.colClues}
-            onClick={(i, j) => this.handleClick(i,j)}
-            satisfiedRowClues = {this.state.satisfiedRowClues}
-            satisfiedColClues = {this.state.satisfiedColClues}
-            win = {this.state.win}
-          />
-          <Switch switchState={() => this.toggle()}/>
+          <Switch empty="." switchState={() => this.showSolution()}/>
+          <div>Mostrar Solucion</div>
+          <div className = {`${this.state.solution ? "solution_board_game--show" : "solution_board_game--hide" }`}>
+            <div className= "board2">
+              <Board
+                grid={this.state.resolvedGrid}
+                rowClues={this.state.rowClues}
+                colClues={this.state.colClues}
+                onClick={(i, j) => {}}
+                satisfiedRowClues = {Object.assign({}, Array(this.state.rowClues.length).fill(true))}
+                satisfiedColClues = {Object.assign({}, Array(this.state.colClues.length).fill(true))}
+              />
+            </div>
+            <Board
+              grid={this.state.grid}
+              rowClues={this.state.rowClues}
+              colClues={this.state.colClues}
+              onClick={(i, j) => {if(!this.state.solution) this.handleClick(i,j)}}
+              satisfiedRowClues = {this.state.satisfiedRowClues}
+              satisfiedColClues = {this.state.satisfiedColClues}
+              win = {this.state.win}
+            />
+          </div>
+          <div className="tools">
+            <Switch switchState={() => this.toggle()}/>
+            <button onClick={() => this.setPista()} disabled={this.state.pista ? "x" : null}>pista</button>
+          </div>
         </div>
         <div className="gameInfo">
           {statusText}

@@ -120,3 +120,22 @@ input:checked + .slider:before{
 .clue--satisfied{
   background:#b2b7b9;
 }
+
+.solution_board_game--show > .board2{
+  position: absolute;
+}
+
+.solution_board_game--hide > .board2{
+  display: none;
+}
+
+.board2{
+  z-index: 10;
+}
+ 
+.tools{
+  display: flex;
+  gap: 1rem;
+  flex-direction: row;
+  align-items: center;
+}

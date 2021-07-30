@@ -96,6 +96,9 @@ getColumnaAux(ColN, [Fila|Grilla],ColAux,Columna):-
     nth0(ColN, Fila,C),
     append(ColAux,[C],Aux),
     getColumnaAux(ColN,Grilla,Aux,Columna).
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % put(+Contenido, +Pos, +PistasFilas, +PistasColumnas, +Grilla, -GrillaRes, -FilaSat, -ColSat).
@@ -127,3 +130,114 @@ put(Contenido, [RowN, ColN], PistasFilas, PistasColumnas, Grilla, NewGrilla, Fil
 	getColumna(ColN, NewGrilla,Columna),
 	nth0(ColN,PistasColumnas,PCol),
 	satisfaceLinea(Columna,PCol,ColSat).
+
+generarPosible([],[]) :- !.
+
+generarPosible(L, [X|S]) :-
+    S \= [],
+    generar_espacio(L, Laux),
+    set_consecutivo(X, Laux, Laux2),
+    generar_espacio2(Laux2, Laux3),
+    generarPosible(Laux3, S).
+
+generarPosible(L, [X|[]]) :-
+    generar_espacio(L, Laux),
+    set_consecutivo(X, Laux, Laux2),
+    generar_espacio(Laux2, Laux3),
+    generarPosible(Laux3, []).
+
+generar_espacio2(["X"|L],L).
+
+generar_espacio(L, L).
+
+generar_espacio(["X"|L],Res) :-
+    generar_espacio(L, Res).
+
+set_consecutivo(0,L, L).
+
+set_consecutivo(N,["#"|L], Res) :-
+    N > 0,
+    M is N - 1,
+    set_consecutivo(M,L, Res).
+
+pintar([],_,[]).
+
+pintar([Linea|Rest],[Pista|Pistas],[JugadaSegura|Res]):-
+    findall(Linea,(length(Linea, _), generarPosible(Linea, Pista)),Combinaciones),
+    transpuesta(Combinaciones,X), interseccion(X,JugadaSegura),
+    pintar(Rest,Pistas,Res).
+
+transpuesta([X|Grilla],Transpuesta):-
+    length(X, Length),
+    N is Length - 1,
+    transpuesta([X|Grilla], N,Transpuesta).
+
+transpuesta(Grilla, 0,[Columna]):-
+    getColumna(0, Grilla, Columna).
+
+transpuesta(Grilla, N,Res):-
+    getColumna(N, Grilla, Columna),
+    M is N - 1,
+    transpuesta(Grilla, M, S),
+    append(S,[Columna],Res).
+    
+interseccion([],[]).
+
+interseccion([X|Combinaciones], [Res|Interseccion]) :-
+    interseccion(Combinaciones,Interseccion),
+    X = [E|R],
+    comunes(E,R,Res).
+
+comunes(E,[],E).
+
+comunes(E,[X|_], _):- 
+        E \== X.
+
+comunes(E,[E|R],Interseccion):-
+        comunes(E,R,Interseccion).
+
+primeraPasada(Grilla,PistasFilas,PistasColumnas,GrillaRes):-
+    pintar(Grilla,PistasFilas,FilasPintadas),
+    transpuesta(FilasPintadas,GrillaT),
+    pintar(GrillaT,PistasColumnas,FilColPintadas),
+    transpuesta(FilColPintadas,GrillaRes).
+
+forzar_jugada([],_,[]).
+
+forzar_jugada([Linea|Rest],[_Pista|Pistas],[Linea|Res]):-
+    forall(member(Elem,Linea), (Elem == 1; Elem == 2)),
+    forzar_jugada(Rest,Pistas,Res).
+
+forzar_jugada([Linea|Rest],[Pista|Pistas],[Linea|Res]):-
+    length(Linea, _),
+    generarPosible(Linea, Pista),
+    forzar_jugada(Rest,Pistas,Res).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% is_solved(+ColN, +ColClues, +Grid).
+%
+checkear_columnas(N, [Pista], Grilla):-
+    getColumna(N, Grilla,Columna),
+    satisfaceLinea(Columna,Pista,1).
+
+checkear_columnas(N, [Pista|Pistas], Grilla):-
+    getColumna(N, Grilla,Columna),
+    satisfaceLinea(Columna,Pista,1),
+    NextColN is N + 1,
+    checkear_columnas(NextColN, Pistas, Grilla).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% is_solved(+ColClues, +Grid).
+%
+checkear_columnas(Pistas, Grilla):-
+    checkear_columnas(0,Pistas,Grilla).
+
+pasadaFinal(Grilla,PistasFilas,PistasColumnas,GrillaRes):-
+    forzar_jugada(Grilla,PistasFilas,GrillaRes),
+    checkear_columnas(PistasColumnas,GrillaRes).
+
+solucion(Grilla,PistasFilas,PistasColumnas,GrillaResuelta) :-
+    primeraPasada(Grilla,PistasFilas,PistasColumnas,GrillaMediaResuelta),
+    pasadaFinal(GrillaMediaResuelta,PistasFilas,PistasColumnas,GrillaResuelta).

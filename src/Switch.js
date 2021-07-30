@@ -12,7 +12,7 @@ class Switch extends React.Component {
     render() {
         return (
             <div className="switch_container">
-                <div>#</div>
+                {this.props.empty ? null : <div>#</div>}
                 <label className="switch">
                     <input 
                         type="checkbox" 
@@ -24,7 +24,7 @@ class Switch extends React.Component {
                     />
                     <span className="slider"/>
                 </label>
-                <div>X</div>
+                {this.props.empty ? null : <div>X</div>}
             </div>
         );
     }
