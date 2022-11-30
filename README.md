@@ -2,6 +2,8 @@
 
 Implementación de un nonogram interactivo, usando React del lado del cliente, y Prolog del lado del servidor.
 
+Proyecto realizado por Valentin Pisani, Maria Luz Cabral Y Nahuel Díaz.
+
 ## Para correr el proyecto
 
 ### Setup y ejecución del servidor Pengines
